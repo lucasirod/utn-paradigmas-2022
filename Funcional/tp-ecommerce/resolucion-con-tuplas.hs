@@ -1,6 +1,6 @@
 
 type Nombre = String
-type Precio = Float
+type Precio = Int
 type Producto = (Nombre,Precio) 
 
 remera :: Producto
@@ -39,14 +39,11 @@ versionBarata unProducto = (reverse.fst.descodiciarProducto $ unProducto , snd u
 productoDeElite :: Producto -> Bool
 productoDeElite unProducto = productoDeLujo unProducto && productoCodiciado unProducto && (not.productoCorriente) unProducto
 
-aplicarCostoDeEnvio :: Num(a)=> a -> a-> a
+aplicarCostoDeEnvio :: Precio -> Int -> Int
 aplicarCostoDeEnvio unPrecio unCosto = unPrecio + unCosto
 
-aplicarDescuento :: Num(a)=> a -> a -> a
+aplicarDescuento :: Precio -> Int -> Int
 aplicarDescuento unPrecio unDescuento = unPrecio * (1 - unDescuento)
 
--- precioTotal :: Num(a) => Producto -> a -> a -> a -> a
--- precioTotal (_,precio) cant desc costoEnvio = aplicarCostoDeEnvio (aplicarDescuento precio desc * cant) costoEnvio
---                                                                                            ↑↑↑↑
--- DUDA: En precio total me marca error en desc -> Couldn't match expected type `Precio' with actual type `a'
--- No entiendo porque si aplicarDescuento recibe dos num (desc y precio, que al ser float se supone que tambien es num) y devuelve un num, cant tambien es num y aplicarCostoDeEnvio recibe dos num (la salida de aplicarDescuento y el costo) y devuelve otro num
+precioTotal :: Producto -> Int -> Int -> Int -> Int
+precioTotal (_,precio) cant desc costoEnvio = aplicarCostoDeEnvio (aplicarDescuento precio desc * cant) costoEnvio
