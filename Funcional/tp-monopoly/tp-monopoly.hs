@@ -105,6 +105,8 @@ comprarUnaPropiedad :: Propiedad -> Participante -> Participante
 comprarUnaPropiedad unaPropiedad unParticipante = mapDinero (subtract (precio unaPropiedad)).agregarPropiedad unaPropiedad $ unParticipante
 --                                              = mapDinero (+ (- precio unaPropiedad)).agregarPropiedad unaPropiedad $ unParticipante
 
+--                                              LO HICE ASI PORQUE CON EL (- precio unaPropiedad) NO ME DEJABA, porque es esto?
+
 cobrarAlquileres :: Accion
 cobrarAlquileres unParticipante = mapDinero (+totalACobrar unParticipante) unParticipante
 
