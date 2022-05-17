@@ -1,4 +1,4 @@
-import Text.Show.Functions
+import Text.Show.Functions()
 
 data Cancion = UnaCancion {
     titulo      :: Titulo,
@@ -17,6 +17,9 @@ type Genero = String
 type Duracion = Int
 type Nombre = String
 type Efecto = Cancion -> Cancion
+
+
+-------------------------------MAPPERS Y SETTERS------------------------------
 
 mapDuracion :: (Duracion -> Duracion) -> Cancion -> Cancion
 mapDuracion unaFuncion  unaCancion = unaCancion{ duracion = unaFuncion.duracion $ unaCancion}
@@ -42,6 +45,47 @@ mapNombre unaFuncion unArtista = unArtista{ nombre = unaFuncion.nombre $ unArtis
 setNombre :: Nombre -> Artista -> Artista
 setNombre = mapNombre . const
 
+
+
+-------------------------------MODELADO DE CANCIONES Y ARTISTAS------------------------------
+
+cafeParaDos :: Cancion
+cafeParaDos = UnaCancion "Cafe para Dos" "rock melancolico" 146
+
+fuiHastaAhi :: Cancion
+fuiHastaAhi = UnaCancion "Fui hasta ahi" "rock" 279
+
+losEscarabajos :: Artista
+losEscarabajos = UnArtista "Los escarabajos" [rocketRaccoon,mientrasMiBateriaFesteja,tomateDeMadera] acortar
+
+rocketRaccoon :: Cancion
+rocketRaccoon = UnaCancion "Rocket Racccoon" "metal" 179
+
+mientrasMiBateriaFesteja :: Cancion
+mientrasMiBateriaFesteja = UnaCancion "Mientras mi bateria festeja" "heavy metal" 400
+
+tomateDeMadera :: Cancion
+tomateDeMadera = UnaCancion "Tomate de madera" "infantil" 100
+
+adela :: Artista
+adela = UnArtista "Adela" [teAcordas,unPibeComoVos,daleMechaALaLluvia] remixar
+
+unPibeComoVos :: Cancion
+unPibeComoVos = UnaCancion "Un pibe como vos" "romantico" 245
+
+teAcordas :: Cancion
+teAcordas = UnaCancion "¿Te Acordas?" "romantico" 210
+
+daleMechaALaLluvia :: Cancion
+daleMechaALaLluvia = UnaCancion "Dale mecha a la lluvia" "romantico" 196
+
+elTigreJoaco :: Artista
+elTigreJoaco = UnArtista "El Tigre Joaco" [] (acustizar 360)
+
+
+
+------------------------------- EFECTOS PARTE A ------------------------------
+
 acortar :: Efecto
 acortar unaCancion = mapDuracion (subtract 60) unaCancion
 
@@ -65,49 +109,37 @@ aplicarEfecto :: Cancion -> Efecto -> Cancion
 aplicarEfecto unaCancion unEfecto = unEfecto unaCancion
 
 
-cafeParaDos :: Cancion
-cafeParaDos = UnaCancion "Cafe para Dos" "rock melancolico" 146
 
-fuiHastaAhi :: Cancion
-fuiHastaAhi = UnaCancion "Fui hasta ahi" "rock" 279
 
---losEscarabajos :: Artista
---losEscarabajos = UnArtista "Los escarabajos" [] [rocketRaccoon,mientrasMiBateriaFesteja,tomateDeMadera] acortar
-
---rocketRaccoon :: Cancion
---mientrasMiBateriaFesteja :: Cancion
---tomateDeMadera :: Cancion
-
---adela :: Artista
---adela = UnaCancion "Adela" [unPibeComoVos,daleMechaALaLluvia] remixar
-
---unPibeComoVos :: Cancion
---daleMechaALaLluvia :: Cancion
-
-elTigreJoaco :: Artista
-elTigreJoaco = UnArtista "El Tigre Joaco" [] (acustizar 360)
-
+------------------------------- PARTE B ------------------------------
 
 
 vistazo :: Artista -> [Cancion]
 vistazo unArtista = take 3 . filter ((<150).duracion) . canciones $ unArtista
 
 playlist :: Genero -> [Artista] -> [Cancion]
-playlist unGenero unosArtistas = filter (==unGenero) (concatenarCanciones unosArtistas)
+playlist unGenero unosArtistas = filter ((==unGenero).genero) (concatenarCanciones unosArtistas)
 
-concatenarCanciones :: [Artista] -> Cancion
+concatenarCanciones :: [Artista] -> [Cancion]
 concatenarCanciones unosArtistas = foldl1 (++) (map canciones unosArtistas)
+
+
+
+------------------------------- PARTE C ------------------------------
 
 
 
 hacerseDJ :: Artista -> Artista
 hacerseDJ unArtista = mapCanciones (map (efecto unArtista)) unArtista
 
+
 tieneGustoHomogeneo :: Artista -> Bool
-tieneGustoHomogeneo unArtista = all (== generoPrimerCancion unArtista) (canciones unArtista)
+tieneGustoHomogeneo unArtista = all ((== generoPrimerCancion unArtista).genero) (canciones unArtista)
 
 generoPrimerCancion :: Artista -> Genero
 generoPrimerCancion unArtista = genero.head.canciones $ unArtista
+
+
 
 
 formarBanda :: Nombre -> [Artista] -> Artista
@@ -118,7 +150,8 @@ formarBanda unNombre unosArtistas = UnArtista{
     } 
 
 combinarEfectos :: [Artista] -> Efecto
-combinarEfectos unosArtistas = foldl1 aplicarEfecto 
+combinarEfectos unosArtistas = foldl1 (.) (map efecto unosArtistas)
+
 
 
 obraMaestraProgresiva :: Artista -> Cancion
@@ -129,22 +162,30 @@ obraMaestraProgresiva unArtista = UnaCancion {
 }
 
 concatenarTitulos :: Artista -> Titulo
-concatenarTitulos unArtista = foldl1 (++) (map titulo (canciones UnArtista))
+concatenarTitulos unArtista = foldl1 (++) (map titulo (canciones unArtista))
 
 sumarDuraciones :: Artista -> Duracion
-sumarDuraciones unArtista = foldl1 (+) (map duracion (canciones UnArtista))
+sumarDuraciones unArtista = foldl1 (+) (map duracion (canciones unArtista))
 
 obtenerGeneroSuperador :: Artista -> Genero
-obtenerGeneroSuperador unArtista = foldl1 queGeneroGana (map genero (canciones UnArtista)) 
+obtenerGeneroSuperador unArtista = foldl1 queGeneroGana (map genero (canciones unArtista)) 
 
---queGeneroGana :: Genero -> Genero -> Genero
---queGeneroGana unGenero otroGenero
---    | unGenero=="rock" || otroGenero=="rock" = "rock"
---    | unGenero=="reggaeton"                  = otroGenero
---    | otroGenero=="reggaeton"                = unGenero
---    | length unGenero > length otroGenero    = unGenero
---    | otherwise                              = otroGenero
 
+{- 
+
+SOLUCION CON GUARDAS
+
+queGeneroGana :: Genero -> Genero -> Genero
+queGeneroGana unGenero otroGenero
+    | unGenero=="rock" || otroGenero=="rock" = "rock"
+    | unGenero=="reggaeton"                  = otroGenero
+    | otroGenero=="reggaeton"                = unGenero
+    | length unGenero > length otroGenero    = unGenero
+    | otherwise                              = otroGenero
+
+-}
+
+--SOLUCION CON PATTERN MATCHING
 
 queGeneroGana :: Genero -> Genero -> Genero
 queGeneroGana "rock"          _         = "rock"
@@ -159,23 +200,30 @@ queGeneroTieneMasLetras unGenero otroGenero
     | otherwise                              = otroGenero
 
 
---En la escena apareció una artista que está arrasando con todos los premios gracias a que tiene infinitas canciones, pero antes de agregar su música en Currify te preguntamos:
-
--- ¿Puede esta nueva artista hacerse dj?
-
--- NO, no puede ya que no termina nunca de aplicar el efecto a todas sus canciones
-
--- ¿Podemos echar un vistazo a su música?
-
--- Haskell va agarrando cada item de la lista y a eso se lo pasa a la composicion, por lo tanto si yo tuviese: 
--- take 3.filter (<150) $ unaLista 
--- entonces si se podria, porque agarra un elemento, lo filtra y hace el take, agarra otro lo filtra y hace el take y asi.. una vez que ya tiene los 3 elementos del take termina sin termina de ver toda la lista
-
--- ¿Podrá crear una obra maestra progresiva?
-
---  NO, ya que el fold nunca terminara
 
 
+------------------------------- PARTE D ------------------------------
+
+
+
+{-En la escena apareció una artista que está arrasando con todos los premios gracias a que tiene infinitas canciones, pero antes de agregar su música en Currify te preguntamos:
+
+-- ¿Puede esta nueva artista hacerse dj? --
+
+NO, no puede ya que no termina nunca de aplicar el efecto a todas sus canciones
+
+-- ¿Podemos echar un vistazo a su música? --
+
+Haskell va agarrando cada item de la lista y a eso se lo pasa a la composicion, por lo tanto si yo tuviese: 
+take 3.filter (<150) $ unaLista 
+entonces si se podria, porque agarra un elemento, lo filtra y hace el take, agarra otro lo filtra y 
+hace el take y asi.. una vez que ya tiene los 3 elementos del take termina sin termina de ver toda la lista
+
+-- ¿Podrá crear una obra maestra progresiva? -- 
+
+  NO, ya que el fold nunca terminara
+
+-}
 
 
 
