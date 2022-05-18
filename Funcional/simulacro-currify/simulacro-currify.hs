@@ -39,11 +39,6 @@ setDuracion = mapDuracion . const
 mapCanciones :: ([Cancion] -> [Cancion]) -> Artista -> Artista
 mapCanciones unaFuncion unArtista = unArtista{ canciones = unaFuncion.canciones $ unArtista}
 
-mapNombre :: (Nombre -> Nombre) -> Artista -> Artista
-mapNombre unaFuncion unArtista = unArtista{ nombre = unaFuncion.nombre $ unArtista}
-
-setNombre :: Nombre -> Artista -> Artista
-setNombre = mapNombre . const
 
 
 
@@ -60,6 +55,7 @@ losEscarabajos = UnArtista "Los escarabajos" [rocketRaccoon,mientrasMiBateriaFes
 
 rocketRaccoon :: Cancion
 rocketRaccoon = UnaCancion "Rocket Racccoon" "metal" 179
+--rocketRaccoon = undefined --> PARA CUANDO NO ESTA DEFINIDO ALGO Y NO QUERES INVENTAR
 
 mientrasMiBateriaFesteja :: Cancion
 mientrasMiBateriaFesteja = UnaCancion "Mientras mi bateria festeja" "heavy metal" 400
@@ -100,6 +96,20 @@ acustizar unaDuracion unaCancion
 noEsAcustica :: Cancion -> Bool
 noEsAcustica unaCancion = (/="acustico").genero $ unaCancion
 
+
+{-OTRA SOLUCION ACUSTIZAR:
+
+acustizar :: Int -> Efecto
+acustizar duracion cancion
+  | esAcustica cancion = cancion
+  | otherwise          = setGenero "acústico" . mapDuracion (const duracion) $ cancion
+
+esAcustica :: Cancion -> Bool
+esAcustica = esDelGenero "acústico"
+
+-}
+
+
 metaEfecto :: [Efecto] -> Cancion -> Cancion
 metaEfecto unosEfectos unaCancion = foldl aplicarEfecto unaCancion unosEfectos
                                     --foldl (flip ($)) unaCancion unosEfectos
@@ -115,7 +125,12 @@ aplicarEfecto unaCancion unEfecto = unEfecto unaCancion
 
 
 vistazo :: Artista -> [Cancion]
-vistazo unArtista = take 3 . filter ((<150).duracion) . canciones $ unArtista
+vistazo unArtista = take 3 . filter esCorta . canciones $ unArtista
+
+esCorta :: Cancion -> Bool
+esCorta = (< 150) . duracion
+
+
 
 playlist :: Genero -> [Artista] -> [Cancion]
 playlist unGenero unosArtistas = filter ((==unGenero).genero) (concatenarCanciones unosArtistas)
