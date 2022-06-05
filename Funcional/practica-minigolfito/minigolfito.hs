@@ -97,47 +97,53 @@ golpe unJugador unPalo = unPalo.habilidad $ unJugador
 
 -------------------- PUNTO 3 --------------------------
 
-type Obstaculo = Tiro -> Tiro
+data Obstaculo = UnObstaculo {
+  puedeSuperar :: Condicion,
+  efecto       :: Efecto
+} deriving (Show)
+
+type Condicion = Tiro -> Bool
+type Efecto    = Tiro -> Tiro
 
 
-tiroConRampita ::  Obstaculo
-tiroConRampita = puedeSuperar condicionTunelConRampita efectoTunelConRampita
+tunelConRampita :: Obstaculo
+tunelConRampita = UnObstaculo condicionTunelConRampita efectoTunelConRampita
 
-condicionTunelConRampita :: Tiro -> Bool
-condicionTunelConRampita unTiro = ((<90).precision) unTiro && alRasDelSuelo unTiro
+condicionTunelConRampita :: Condicion
+condicionTunelConRampita unTiro = ((>90).precision) unTiro && alRasDelSuelo unTiro
 
-efectoTunelConRampita :: Obstaculo
+efectoTunelConRampita :: Efecto
 efectoTunelConRampita = mapVelocidad (*2) . setPrecision 100 . setAltura 0
 
 
 
 laguna :: Int -> Obstaculo
-laguna unLargo = puedeSuperar condicionLaguna (efectoLaguna unLargo)
+laguna unLargo = UnObstaculo condicionLaguna (efectoLaguna unLargo)
 
-condicionLaguna ::  Tiro -> Bool
+condicionLaguna ::  Condicion
 condicionLaguna unTiro = ((>80).velocidad) unTiro && (between 1 5.altura) unTiro
 
-efectoLaguna :: Int -> Obstaculo
+efectoLaguna :: Int -> Efecto
 efectoLaguna unLargo = mapAltura (`div` unLargo)
 
 
 
 
 hoyo :: Obstaculo
-hoyo = puedeSuperar condicionHoyo efectoHoyo
+hoyo = UnObstaculo condicionHoyo efectoHoyo
 
-condicionHoyo :: Tiro -> Bool
+condicionHoyo :: Condicion
 condicionHoyo unTiro = (between 5 20.velocidad) unTiro && alRasDelSuelo unTiro && ((>95).precision) unTiro
 
-efectoHoyo :: Obstaculo
+efectoHoyo :: Efecto
 efectoHoyo _ = tiroDetenido
 
 
 
 
-puedeSuperar ::  (Tiro->Bool) -> Obstaculo -> Tiro -> Tiro
-puedeSuperar condicionObstaculo efectoObstaculo unTiro
-    | condicionObstaculo unTiro             = efectoObstaculo unTiro
+intentarSuperarObstaculo ::  Obstaculo -> Tiro -> Tiro
+intentarSuperarObstaculo unObstaculo unTiro
+    | puedeSuperar unObstaculo unTiro       = efecto unObstaculo unTiro
     | otherwise                             = tiroDetenido
 
 alRasDelSuelo :: Tiro -> Bool
@@ -145,3 +151,52 @@ alRasDelSuelo = (==0).altura
 
 tiroDetenido :: Tiro
 tiroDetenido = UnTiro 0 0 0
+
+
+-------------------- PUNTO 4A --------------------------
+
+
+palosUtiles :: Jugador -> Obstaculo -> [Palo]
+palosUtiles unJugador unObstaculo = filter (paloLeSirveParaSuperar unJugador unObstaculo) palos
+
+paloLeSirveParaSuperar :: Jugador -> Obstaculo -> Palo -> Bool
+paloLeSirveParaSuperar unJugador unObstaculo = puedeSuperar unObstaculo . efecto unObstaculo . golpe unJugador
+
+
+
+
+-------------------- PUNTO 4B --------------------------
+
+
+cuantosObstaculosConsecutivosSupera ::[Obstaculo] -> Tiro ->  Int
+cuantosObstaculosConsecutivosSupera [] _                 = 0
+cuantosObstaculosConsecutivosSupera (cabeza:cola) unTiro 
+  | puedeSuperar cabeza unTiro   = 1 + cuantosObstaculosConsecutivosSupera cola (efecto cabeza unTiro)
+  | otherwise                    = 0
+
+
+
+-------------------- PUNTO 4C --------------------------
+
+
+paloMasUtil :: Jugador -> [Obstaculo] -> Palo
+paloMasUtil unJugador unosObstaculos =  maximoSegun (cuantosObstaculosConsecutivosSupera unosObstaculos . golpe unJugador) palos
+
+
+
+-------------------- PUNTO 5 --------------------------
+
+type Resultado = (Jugador,Puntos)
+
+padresQuePierdenApuesta :: [Resultado] -> [String]
+padresQuePierdenApuesta unosResultados = map (padre.fst) (niñosQueNoGanaron unosResultados)
+
+niñosQueNoGanaron :: [Resultado] -> [Resultado]
+niñosQueNoGanaron unosResultados = filter (not.jugadorGano unosResultados) unosResultados
+
+jugadorGano :: [Resultado] -> Resultado -> Bool
+jugadorGano unosResultados resultadoDeJugador = ( all ((< snd resultadoDeJugador).snd) . filter (/= resultadoDeJugador) )  unosResultados
+
+--Otra forma de pensarlo que anda pero estaria mal en caso de empate porque segun la consigna SOLO se gana si tener mas puntos que los demas, si hay empate nadie gana
+jugadorGano' :: [Resultado] -> Resultado -> Bool
+jugadorGano' unosResultados resultadoDeJugador = snd resultadoDeJugador == maximum (map snd unosResultados)
