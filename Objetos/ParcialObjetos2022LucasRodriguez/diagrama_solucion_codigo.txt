@@ -1,0 +1,128 @@
+@startuml {parcial}
+
+
+abstract class Pelicula {
+	
+	nombre
+	elenco
+	recaudacionExtra()
+	
+	presupuesto()
+	sumatoriaSueldosElenco()
+	ganancias()
+	recaudacion()
+	rodarPelicula()
+    esEconomica()
+	
+}
+
+
+class PeliculaDrama {
+	
+	recaudacionExtra()
+	
+}
+
+class PeliculaAccion{
+	
+	vidriosRotos
+	
+	presupuesto()
+	recaudacionExtra()
+	
+}
+
+class PeliculaTerror {
+	
+	cuchos
+	
+	recaudacionExtra()
+}
+
+class PeliculaComedia {
+	
+    recaudacionExtra()
+	
+}
+
+
+
+
+class Artista {
+	
+	experiencia
+	cantidadDePeliculas
+	ahorros
+
+	sueldo()
+	recategorizarExperiencia()
+	actuarEnPelicula()
+	incrementarAhorros(unaCantidad)
+	
+}
+
+
+object amateur {
+	
+	sueldoSegunExperiencia(unArtista)
+    puedeRecategorizar(cantidadDePeliculas)
+	siguienteNivel()
+	
+}
+
+
+object establecido {
+	
+	sueldoSegunExperiencia(unArtista)
+	puedeRecategorizar(cantidadDePeliculas)
+	siguienteNivel()
+    nivelDeFama(cantidadDePeliculas)
+	
+}
+
+
+object estrella {
+	
+	sueldoSegunExperiencia(unArtista)
+	puedeRecategorizar(cantidadDePeliculas)
+	siguienteNivel()
+}
+
+interface Experiencia {
+    sueldoSegunExperiencia(unArtista)
+	puedeRecategorizar(cantidadDePeliculas)
+	siguienteNivel()
+}
+
+
+object impdep {
+	
+	peliculas
+	artistas
+	
+	artistaConMejorPaga()
+	peliculasEconomicas()
+    nombresDePeliculasEconomicas()
+	sumaDeGananciasPeliculasEconomicas()
+	recategorizarArtistas()
+}
+
+
+
+
+
+PeliculaDrama -u-|> Pelicula
+PeliculaAccion -u-|> Pelicula
+PeliculaTerror -u-|> Pelicula
+PeliculaComedia -u-|> Pelicula
+Experiencia <|.. amateur
+Experiencia <|.. establecido
+Experiencia <|.. estrella
+Experiencia <-- Artista
+impdep --> "artistas *" Artista
+impdep --> "peliculas *" Pelicula
+
+
+
+
+@enduml
