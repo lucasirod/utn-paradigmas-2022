@@ -1,0 +1,116 @@
+@startuml
+class Usuario {
+  nombreUsuario
+  dni
+  dinero
+
+  recargarCombustible(unaCantidad)
+  puedoPagarCombustible(unaCantidad)
+  puedoPagarMulta(unaMulta)
+  pagarMultas()
+  pagarMulta(unaMulta)
+  recibirMulta(unaMulta) 
+  tieneDniHabilitadoParaRecorrer()
+  esEcologico()
+  esComplicado()
+}
+
+Usuario --> Vehiculo
+Usuario --> "multas *" Multa
+
+abstract class Vehiculo {
+  combustible
+  capacidadTanque
+  velocidadPromedio
+
+  cantidadARecargar(unaCantidad)
+  recargarCombustible(unaCantidad)
+  superaCapacidadTanque(unaCantidad)
+  recorrer(unaDistancia)
+  perderCombustible(unaCantidad) 
+  perdidaBase(unaDistancia)
+  perdidaAdicional(unaDistancia)
+  esEcologico()
+}
+
+class Camioneta {
+  perdidaBase(unaDistancia)
+  perdidaAdicional(unaDistancia)
+  esEcologico() 
+}
+
+Camioneta -u-|> Vehiculo
+
+class Deportivo {
+  perdidaAdicional(unaDistancia)
+  esEcologico() 
+}
+
+Deportivo -u-|> Vehiculo
+
+class Familiar {
+  perdidaAdicional(unaDistancia)
+  esEcologico() 
+}
+
+Familiar -u-|> Vehiculo
+
+class Multa {
+  costo
+  pagada
+
+  constructor(unCosto)
+
+  puedeSerPagada(unValor)
+  multaPagada()
+  noSePudoPagar()
+}
+
+class Zona {
+  velocidadMaxima
+
+  activarControles()
+  cantidadDeUsuarios() 
+}
+
+Zona -r-> "usuarios *" Usuario
+Zona --> "controles *" Control
+
+abstract class Control {
+
+  controlarUsuarios(zona, usuarios)
+  controlar(zona, usuario)
+  esMultable(zona, usuario)
+  valorMulta()
+}
+
+object controlVelocidad {
+  esMultable(zona, usuario)
+  valorMulta()
+}
+
+controlVelocidad -u-|> Control
+
+object controlEcologico {
+  esMultable(zona, usuario)
+  valorMulta()
+}
+
+controlEcologico -u-|> Control
+
+object controlRegulatorio {
+  esMultable(zona, usuario)
+  valorMulta()
+}
+
+controlRegulatorio -u-|> Control
+
+object waza {
+  pagarMultas()
+  zonasMasTransitadas()
+  usuariosComplicados()
+}
+
+waza --> "usuarios *" Usuario
+waza --> "zonas *" Zona
+@enduml
